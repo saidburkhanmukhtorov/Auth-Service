@@ -2,9 +2,9 @@ package postgres
 
 import (
 	"database/sql"
-	"log"
 
 	"github.com/Project_Restaurant/Auth-Service/models"
+	t "github.com/Project_Restaurant/Auth-Service/token"
 )
 
 type UserRepo struct {
@@ -21,9 +21,12 @@ func NewUserRepo(db *sql.DB) *UserRepo {
 
 func (u *UserRepo) Register(user models.UserRegister) (models.LoginRes, error) {
 	var us models.LoginRes
-	log.Println(user)
-	err := u.db.QueryRow("insert into users(username, password, email) values ($1, $2, $3) returning id, username", user.Name, user.Password, user.Email).
-	Scan(&us.ID, &us.Name)
+	hashPassword, err := t.HashPassword(user.Password)
+	if err != nil {
+		panic(err)
+	}
+	err = u.db.QueryRow("insert into users(username, password, email) values ($1, $2, $3) returning id, username", user.Name, hashPassword, user.Email).
+		Scan(&us.ID, &us.Name)
 	if err != nil {
 		return us, err
 	}
@@ -33,7 +36,12 @@ func (u *UserRepo) Register(user models.UserRegister) (models.LoginRes, error) {
 func (u *UserRepo) Login(user models.UserLogin) (models.LoginRes, error) {
 	res := models.LoginRes{}
 
-	err := u.db.QueryRow("select id, username from users where username = $1 and password = $2", user.Name, user.Password).Scan(&res.ID, &res.Name)
+	hashPassword, err := t.HashPassword(user.Password)
+	if err != nil {
+		panic(err)
+	}
+
+	err = u.db.QueryRow("select id, username from users where username = $1 and password = $2", user.Name, hashPassword).Scan(&res.ID, &res.Name)
 	if err != nil {
 		return res, err
 	}
@@ -42,7 +50,8 @@ func (u *UserRepo) Login(user models.UserLogin) (models.LoginRes, error) {
 
 func (u *UserRepo) GetByUsername(username string) (models.User, error) {
 	user := models.User{}
-	err := u.db.QueryRow("select * from users where username = $1", username).Scan(&user.ID, &user.Name, &user.Email, &user.Password, &user.CreatedAt, &user.UpdatedAt, &user.DeletedAt)
+	err := u.db.QueryRow("select id, username, email, created_at, updated_at, deleted_at from users where username = $1", username).
+	Scan(&user.ID, &user.Name, &user.Email, &user.CreatedAt, &user.UpdatedAt, &user.DeletedAt)
 	if err != nil {
 		return user, err
 	}
