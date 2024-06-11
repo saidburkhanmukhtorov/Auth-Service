@@ -15,13 +15,24 @@ type Handler struct {
 	User *postgres.UserRepo
 }
 
-func NewHandler(db *sql.DB) *Handler {
+func NewHandler(db *sql.DB, user *postgres.UserRepo) *Handler {
 	return &Handler{
 		db:   db,
-		User: postgres.NewUserRepo(db),
+		User: user,
 	}
 }
 
+// @Summary Register new user
+// @Description Register a new user with the provided details
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param user body models.UserRegister true "User data"
+// @Success 200 {object} models.LoginRes
+// @Failure 400 {object} string "Bad request"
+// @Failure 500 {object} string "Internal server error"
+// @Router /register [post]
+// @Security ApiKeyAuth
 func (h *Handler) Register(c *gin.Context) {
 	var user models.UserRegister
 	if err := c.BindJSON(&user); err != nil {
@@ -40,10 +51,20 @@ func (h *Handler) Register(c *gin.Context) {
 		return
 	}
 
-
 	c.JSON(http.StatusOK, gin.H{"token": token})
 }
 
+// @Summary Login user
+// @Description Log in an existing user with the provided credentials
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param user body models.UserLogin true "User data"
+// @Success 200 {object} models.LoginRes
+// @Failure 400 {object} string "Bad request"
+// @Failure 500 {object} string "Internal server error"
+// @Router /login [post]
+// @Security ApiKeyAuth
 func (h *Handler) Login(c *gin.Context) {
 	var user models.UserLogin
 	if err := c.BindJSON(&user); err != nil {
@@ -66,6 +87,17 @@ func (h *Handler) Login(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"token": token})
 }
 
+// @Summary Get user by username
+// @Description Retrieve a user's details by their username
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param username path string true "Username"
+// @Success 200 {object} models.User
+// @Failure 400 {object} string "Bad request"
+// @Failure 500 {object} string "Internal server error"
+// @Router /users/{username} [get]
+// @Security ApiKeyAuth
 func (h *Handler) GetByUsername(c *gin.Context) {
 	username := c.Param("username")
 
@@ -77,4 +109,3 @@ func (h *Handler) GetByUsername(c *gin.Context) {
 
 	c.JSON(http.StatusOK, user)
 }
-
