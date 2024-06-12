@@ -2,58 +2,104 @@ package postgres
 
 import (
 	"database/sql"
+	"log"
 
-	"github.com/Project_Restaurant/Auth-Service/models"
-	t "github.com/Project_Restaurant/Auth-Service/token"
+	"auth/models"
+
+	"github.com/google/uuid"
 )
 
 type UserRepo struct {
-	db *sql.DB
+	Db *sql.DB
 }
 
 func NewUserRepo(db *sql.DB) *UserRepo {
-	return &UserRepo{db: db}
+	return &UserRepo{Db: db}
 }
 
-// Create User return id, username
-// login username, password  return id username
-// get by username return User struct
 
-func (u *UserRepo) Register(user models.UserRegister) (models.LoginRes, error) {
-	var us models.LoginRes
-	hashPassword, err := t.HashPassword(user.Password)
+func (us *UserRepo) CreateUser(req *models.UserReq) (*models.UserRes, error) {
+	id := uuid.New().String()
+	query := `
+		insert into allusers(id,name,age,email,gender,password) values($1,$2,$3,$4,$5,$6) 
+		returning id,name,age,email,gender,created_at,updated_at
+	`
+	resUser := models.UserRes{}
+
+	err := us.Db.QueryRow(query, id, req.Name, req.Age, req.Email, req.Gender, req.Password).Scan(
+			&resUser.ID, &resUser.Name, &resUser.Age, &resUser.Email, &resUser.Gender, &resUser.CreatedAt, &resUser.UpdatedAt,
+		)
 	if err != nil {
-		panic(err)
+		log.Fatal("Error whith create newuser in database", err)
+		return nil, err
 	}
-	err = u.db.QueryRow("insert into users(username, password, email) values ($1, $2, $3) returning id, username", user.Name, hashPassword, user.Email).
-		Scan(&us.ID, &us.Name)
-	if err != nil {
-		return us, err
-	}
-	return us, nil
+	return &resUser, nil
 }
 
-func (u *UserRepo) Login(user models.UserLogin) (models.LoginRes, error) {
-	res := models.LoginRes{}
+func (us *UserRepo) UpdateUserRepo(id string, req *models.UserReq) (*models.UserRes, error) {
 
-	hashPassword, err := t.HashPassword(user.Password)
+	query := `
+        update allusers set username=$1, age=$2, email=$3, gender=$4, password=$5, updated_at=now() where id=$6
+        returning id, username, age, email, gender, password, created_at, updated_at
+    `
+	resUser := models.UserRes{}
+	err := us.Db.QueryRow(query, req.Name, req.Age, req.Email, req.Gender, req.Password, id).Scan(
+		&resUser.ID, &resUser.Name, &resUser.Age, &resUser.Email, &resUser.Gender, &resUser.CreatedAt, &resUser.UpdatedAt,
+	)
 	if err != nil {
-		panic(err)
+		log.Println("Error updating user in database:", err)
+		return nil, err
 	}
-
-	err = u.db.QueryRow("select id, username from users where username = $1 and password = $2", user.Name, hashPassword).Scan(&res.ID, &res.Name)
-	if err != nil {
-		return res, err
-	}
-	return res, nil
+	return &resUser, nil
 }
 
-func (u *UserRepo) GetByUsername(username string) (models.User, error) {
-	user := models.User{}
-	err := u.db.QueryRow("select id, username, email, created_at, updated_at, deleted_at from users where username = $1", username).
-	Scan(&user.ID, &user.Name, &user.Email, &user.CreatedAt, &user.UpdatedAt, &user.DeletedAt)
+func (us *UserRepo) GetUserRepo(id string) (*models.UserRes, error) {
+	query := "select id, username, age, email, gender, created_at, updated_at from users where id=$1"
+	resUser := models.UserRes{}
+	err := us.Db.QueryRow(query, id).Scan(
+		&resUser.ID, &resUser.Name, &resUser.Age, &resUser.Email, &resUser.Gender, &resUser.CreatedAt, &resUser.UpdatedAt,
+	)
 	if err != nil {
-		return user, err
+		log.Println("Error fetching user from database:", err)
+		return nil, err
 	}
-	return user, nil
+	return &resUser, nil
+}
+
+func (us *UserRepo) GetAllUsersRepo() ([]models.UserRes, error) {
+	query := "select id, username, age, email, gender, created_at, updated_at from users"
+	rows, err := us.Db.Query(query)
+	if err != nil {
+		log.Println("Error fetching all users from database:", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users []models.UserRes
+	for rows.Next() {
+		var user models.UserRes
+		err := rows.Scan(&user.ID, &user.Name, &user.Age, &user.Email, &user.Gender, &user.CreatedAt, &user.UpdatedAt)
+		if err != nil {
+			log.Println("Error scanning user row:", err)
+			return nil, err
+		}
+		users = append(users, user)
+	}
+	if err = rows.Err(); err != nil {
+		log.Println("Error with user rows:", err)
+		return nil, err
+	}
+
+	return users, nil
+}
+
+
+func (us *UserRepo) DeleteUserRepo(id string) error {
+	query := "update users set deleted_at = extract(epoch from NOW()) where deleted_at = 0"
+	_, err := us.Db.Exec(query, id)
+	if err != nil {
+		log.Println("Error deleting user from database:", err)
+		return err
+	}
+	return nil
 }

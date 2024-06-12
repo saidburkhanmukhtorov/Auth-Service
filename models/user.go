@@ -1,31 +1,33 @@
 package models
 
 
-type User struct {
-	ID string `json:"id"`
-	Name string `json:"username"`
+
+type UserReq struct {
+	Name string `json:"name"`
+	Age int32 	`json:"age"`
 	Email string `json:"email"`
 	Password string `json:"password"`
+	Gender string	`json:"gender"`
+}
+
+type UserRes struct {
+	ID string `json:"id"`
+	Name string `json:"name"`
+	Age int32 	`json:"age"`
+	Email string `json:"email"`
+	Token string `json:"token"`
+	Gender string	`json:"gender"`
 	CreatedAt string `json:"created_at"`
 	UpdatedAt string `json:"updated_at"`
-	DeletedAt int64 `json:"deleted_at"`
 }
 
-
-type UserRegister struct{
-	Name string `json:"username"`
-	Email string `json:"email"`
-	Password string `json:"password"`
-}
 
 type UserLogin struct{
-	Name string `json:"username"`
-	Email string `json:"email"`
+	EmailOrUsername string `json:"email_username"`
 	Password string `json:"password"`
 }
 
 type LoginRes struct{
 	ID string `json:"id"`
-	Name string `json:"username"`
-
+	Description string `json:"username"`
 }
