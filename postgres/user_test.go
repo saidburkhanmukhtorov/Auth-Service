@@ -6,12 +6,14 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/Project_Restaurant/Auth-Service/models"
-	// "github.com/Project_Restaurant/Auth-Service/postgres"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestUserRepo_Register(t *testing.T) {
 	db,err := ConnectDb()
+	if err!= nil {
+        t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+    }
 	userRepo := NewUserRepo(db)
 
 	user := models.UserRegister{
