@@ -1,3 +1,2 @@
 DROP TYPE IF EXISTS genders;
 DROP TABLE IF EXISTS allusers;
-
