@@ -2,13 +2,12 @@ package postgres
 
 import (
 	"database/sql"
-	
+
 	_ "github.com/lib/pq"
 )
 
-
-func ConnectDb() (*sql.DB, error){
-	psql := "user=postgres password=root dbname=auth_db sslmode=disable"
+func ConnectDb() (*sql.DB, error) {
+	psql := "user=sayyidmuhammad password=root dbname=vote sslmode=disable"
 	db, err := sql.Open("postgres", psql)
 	if err != nil {
 		return nil, err

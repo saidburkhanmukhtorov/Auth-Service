@@ -5,8 +5,8 @@ import (
 	"log"
 
 	"github.com/Project_Restaurant/Auth-Service/api"
-	"github.com/Project_Restaurant/Auth-Service/postgres"
 	_ "github.com/Project_Restaurant/Auth-Service/docs"
+	"github.com/Project_Restaurant/Auth-Service/postgres"
 )
 
 func main() {
@@ -15,12 +15,12 @@ func main() {
 		log.Fatal(err)
 	}
 	defer db.Close()
-	
+
 	router := api.NewRouter(db)
-	
-	fmt.Println("Server is running on port 1213")
-	if err := router.Run(":1213"); err != nil {
+
+	fmt.Println("Server is running on port 8081")
+	if err := router.Run(":8081"); err != nil {
 		log.Fatal(err)
 	}
-	
+
 }

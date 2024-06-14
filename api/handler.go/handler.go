@@ -45,7 +45,7 @@ func (h *Handler) Register(c *gin.Context) {
 		return
 	}
 
-	token, err := token.CreateToken(res.Name, res.ID)
+	token, err := token.CreateToken(res.ID, res.Name)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -78,7 +78,7 @@ func (h *Handler) Login(c *gin.Context) {
 		return
 	}
 
-	token, err := token.CreateToken(res.Name, res.ID)
+	token, err := token.CreateToken(res.ID, res.Name)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
