@@ -20,7 +20,7 @@ func ProtectedHandler(c *gin.Context) {
 	}
 	tokenString = tokenString[len("Bearer "):]
 
-	err := verifyToken(tokenString)
+	err := VerifyToken(tokenString)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
@@ -45,7 +45,7 @@ func CreateToken(id, username string) (string, error) {
 	return tokenString, nil
 }
 
-func verifyToken(tokenString string) error {
+func VerifyToken(tokenString string) error {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		return secretKey, nil
 	})
@@ -68,5 +68,6 @@ func HashPassword(password string) (string, error) {
 
 func CheckPasswordHash(password, hash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	fmt.Println(err, hash, password)
 	return err == nil
 }

@@ -4,9 +4,11 @@ import (
 	"database/sql"
 	"net/http"
 
+	"github.com/Project_Restaurant/Auth-Service/api/middlewares"
+	"github.com/Project_Restaurant/Auth-Service/api/token"
 	"github.com/Project_Restaurant/Auth-Service/models"
-	"github.com/Project_Restaurant/Auth-Service/postgres"
-	"github.com/Project_Restaurant/Auth-Service/token"
+	"github.com/Project_Restaurant/Auth-Service/storage/postgres"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -32,7 +34,6 @@ func NewHandler(db *sql.DB, user *postgres.UserRepo) *Handler {
 // @Failure 400 {object} string "Bad request"
 // @Failure 500 {object} string "Internal server error"
 // @Router /register [post]
-// @Security ApiKeyAuth
 func (h *Handler) Register(c *gin.Context) {
 	var user models.UserRegister
 	if err := c.BindJSON(&user); err != nil {
@@ -64,7 +65,6 @@ func (h *Handler) Register(c *gin.Context) {
 // @Failure 400 {object} string "Bad request"
 // @Failure 500 {object} string "Internal server error"
 // @Router /login [post]
-// @Security ApiKeyAuth
 func (h *Handler) Login(c *gin.Context) {
 	var user models.UserLogin
 	if err := c.BindJSON(&user); err != nil {
@@ -92,15 +92,16 @@ func (h *Handler) Login(c *gin.Context) {
 // @Tags users
 // @Accept json
 // @Produce json
-// @Param username path string true "Username"
+// @Security BearerAuth
 // @Success 200 {object} models.User
 // @Failure 400 {object} string "Bad request"
 // @Failure 500 {object} string "Internal server error"
 // @Router /users/{username} [get]
-// @Security ApiKeyAuth
 func (h *Handler) GetByUsername(c *gin.Context) {
-	username := c.Param("username")
-
+	username := middlewares.Auth(c)
+	if username == "" {
+		return
+	}
 	user, err := h.User.GetByUsername(username)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

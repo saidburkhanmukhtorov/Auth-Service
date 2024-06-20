@@ -5,8 +5,7 @@ import (
 	"log"
 
 	"github.com/Project_Restaurant/Auth-Service/api"
-	_ "github.com/Project_Restaurant/Auth-Service/docs"
-	"github.com/Project_Restaurant/Auth-Service/postgres"
+	"github.com/Project_Restaurant/Auth-Service/storage/postgres"
 )
 
 func main() {

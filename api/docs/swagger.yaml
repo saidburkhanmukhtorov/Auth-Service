@@ -1,3 +1,4 @@
+basePath: /
 definitions:
   models.LoginRes:
     properties:
@@ -41,8 +42,12 @@ definitions:
       username:
         type: string
     type: object
+host: localhost:8081
 info:
   contact: {}
+  description: This is a Auth service.
+  title: Auth service
+  version: "1.0"
 paths:
   /login:
     post:
@@ -71,8 +76,6 @@ paths:
           description: Internal server error
           schema:
             type: string
-      security:
-      - ApiKeyAuth: []
       summary: Login user
       tags:
       - users
@@ -103,8 +106,6 @@ paths:
           description: Internal server error
           schema:
             type: string
-      security:
-      - ApiKeyAuth: []
       summary: Register new user
       tags:
       - users
@@ -113,12 +114,6 @@ paths:
       consumes:
       - application/json
       description: Retrieve a user's details by their username
-      parameters:
-      - description: Username
-        in: path
-        name: username
-        required: true
-        type: string
       produces:
       - application/json
       responses:
@@ -135,8 +130,13 @@ paths:
           schema:
             type: string
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Get user by username
       tags:
       - users
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"
